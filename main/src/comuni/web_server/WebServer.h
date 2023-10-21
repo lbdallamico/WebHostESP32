@@ -12,8 +12,8 @@ public:
   bool Begin();
   bool Destruct();
   bool IsActive();
-  bool GetRSSIfromHTMLpost(std::string rssi);
-  bool GetPasswordfromHTMLpost(std::string password);
+  bool GetRSSIfromHTMLpost(std::string & rssi);
+  bool GetPasswordfromHTMLpost(std::string  & password);
   static WebServer *GetObjs();
 
 private:

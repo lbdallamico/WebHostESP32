@@ -2,7 +2,7 @@
 #define WiFi_Settings_H_
 
 // SoftAP
-#define DEFAULT_SOFT_AP_SSID                        "Wetzel Lighting Control"
+#define DEFAULT_SOFT_AP_SSID                        "Sem Rede ESP"
 #define DEFAULT_SOFT_AP_PASSWORD                    "123456789"
 #define DEFAULT_SOFT_AP_SSID_LENGHT                 sizeof(DEFAULT_SOFT_AP_SSID)
 #define DEFAULT_SOFT_AP_CHANNEL                     3
@@ -24,5 +24,8 @@
 #define MAIN_RSSI_CHECK_TIMER_MIN_RSSI                      -75
 
 #define MAX_TIME_WAIT_ON_SEMAPHORO                          1000 
+
+#define TASK_STACK_REF_WIFI                                 8*1024
+#define FREERTOS_PRIORITY_TASK                              6
 
 #endif

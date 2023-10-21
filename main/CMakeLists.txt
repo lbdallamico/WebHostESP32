@@ -12,8 +12,9 @@ idf_component_register(
         "src/comuni/wifi/"
         "src/comuni/web_server/"
     REQUIRES
+        nvs_flash
+        esp_wifi
         esp_http_client
         esp_http_server
-        esp32
         esp_netif
 )

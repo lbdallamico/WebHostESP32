@@ -9,7 +9,7 @@
 #include <esp_event.h>
 #include <esp_wifi_default.h>
 #include <esp_wifi_default.h>
-#include <nvs_flash.h>
+// #include <nvs_flash.h>
 
 #include <lwip/err.h>
 #include <lwip/sys.h>
@@ -54,7 +54,7 @@ bool WiFi::Begin(wifi_tipo_rede_t config)
         return false;
     }
 
-    bool result = NO_PASS;
+    bool result = false;
     result = InitNetif();
 
     switch (config)
@@ -74,13 +74,13 @@ bool WiFi::Begin(wifi_tipo_rede_t config)
 
     case kNone:
         ESP_LOGE(TAG_HW_WIFI, "Tipo de wifi não especificado");
-        result = WRONG_CONFIG;
+        result = false;
         break;
 
     default:
         ESP_LOGE(TAG_HW_WIFI, "Wifi config isn't support");
         _type_connection = kNone;
-        result = WRONG_CONFIG;
+        result = false;
         break;
     }
     return result;
@@ -277,7 +277,7 @@ void WiFi::ScanRSSI(void *args)
 {
     while (1)
     {
-        if (xSemaphoreTake(WiFi::_semaphoro_wifi_mode, MAX_TIME_WAIT_ON_SEMAPHORO / portTICK_RATE_MS) != pdTRUE)
+        if (xSemaphoreTake(WiFi::_semaphoro_wifi_mode, MAX_TIME_WAIT_ON_SEMAPHORO / portTICK_PERIOD_MS) != pdTRUE)
         {
             ESP_LOGW(TAG_HW_WIFI, "Nao foi possivel pegar o mutex!");
             return;
@@ -304,7 +304,7 @@ void WiFi::ScanRSSI(void *args)
                 {
                     ESP_LOGW(TAG_HW_WIFI, "O sinal esta muito fraco");
                     esp_wifi_stop();
-                    vTaskDelay(MAIN_RSSI_CHECK_TIMER_RESTART_DELAY_MS / portTICK_RATE_MS);
+                    vTaskDelay(MAIN_RSSI_CHECK_TIMER_RESTART_DELAY_MS / portTICK_PERIOD_MS);
                     esp_wifi_start();
                 }
             }
@@ -315,7 +315,7 @@ void WiFi::ScanRSSI(void *args)
             }
         }
         xSemaphoreGive(WiFi::_semaphoro_wifi_mode);
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }
 
@@ -326,7 +326,7 @@ void WiFi::ScanRSSI(void *args)
  */
 void WiFi::ManagerAP_STA(void *args)
 {
-    if (xSemaphoreTake(WiFi::_semaphoro_wifi_mode, MAX_TIME_WAIT_ON_SEMAPHORO / portTICK_RATE_MS) != pdTRUE)
+    if (xSemaphoreTake(WiFi::_semaphoro_wifi_mode, MAX_TIME_WAIT_ON_SEMAPHORO / portTICK_PERIOD_MS) != pdTRUE)
     {
         ESP_LOGW(TAG_HW_WIFI, "Nao foi possivel pegar o mutex!");
         return;
@@ -373,7 +373,7 @@ bool WiFi::SetSsidAndPassword(std::string ssid, std::string password, wifi_auth_
     wifi_tipo_rede_t local_type = _type_connection;
     bool was_active = false;
 
-    if (xSemaphoreTake(WiFi::_semaphoro_wifi_mode, MAX_TIME_WAIT_ON_SEMAPHORO / portTICK_RATE_MS) != pdTRUE)
+    if (xSemaphoreTake(WiFi::_semaphoro_wifi_mode, MAX_TIME_WAIT_ON_SEMAPHORO / portTICK_PERIOD_MS) != pdTRUE)
     {
         ESP_LOGW(TAG_HW_WIFI, "Nao foi possivel pegar o mutex!");
         return false;
@@ -388,15 +388,21 @@ bool WiFi::SetSsidAndPassword(std::string ssid, std::string password, wifi_auth_
 
     if (_type_connection == kSTA || _type_connection == kAP_STA)
     {
-        // como estou interagindo direto com a estrutura
-        // nao posso passar direto
-        strcpy((char *)WiFi::_sta_config.sta.ssid, ssid.c_str());
+        // Limpar a estrutra
+        memset((char *)WiFi::_sta_config.sta.ssid    , 0, sizeof(WiFi::_sta_config.sta.ssid ));
+        memset((char *)WiFi::_sta_config.sta.password, 0, sizeof(WiFi::_sta_config.sta.password));
+        // Grava novo valor
+        strcpy((char *)WiFi::_sta_config.sta.ssid    , ssid.c_str());
         strcpy((char *)WiFi::_sta_config.sta.password, password.c_str());
         _sta_config.sta.threshold.authmode = autenticao;
     }
     else if (_type_connection == kAP || _type_connection == kAP_STA)
     {
-        strcpy((char *)WiFi::_ap_config.sta.ssid, ssid.c_str());
+        // Limpar a estrutra
+        memset((char *)WiFi::_ap_config.sta.ssid    , 0, sizeof(WiFi::_ap_config.sta.ssid ));
+        memset((char *)WiFi::_ap_config.sta.password, 0, sizeof(WiFi::_ap_config.sta.password));
+        // Grava novo valor
+        strcpy((char *)WiFi::_ap_config.sta.ssid    , ssid.c_str());
         strcpy((char *)WiFi::_ap_config.sta.password, password.c_str());
         _sta_config.sta.threshold.authmode = autenticao;
     }
@@ -474,7 +480,7 @@ void WiFi::event_handler_wifi(void *arg, esp_event_base_t event_base, int32_t ev
          * * WRONG CONFIG
          */
         default:
-            ESP_LOGI(TAG_HW_WIFI, "Feedback WIFI_EVENT não especificada = %u", event_id);
+            // ESP_LOGI(TAG_HW_WIFI, "Feedback WIFI_EVENT não especificada = %d", event_id);
             break;
         }
     }
@@ -493,8 +499,7 @@ void WiFi::event_handler_wifi(void *arg, esp_event_base_t event_base, int32_t ev
             break;
 
         default:
-            ESP_LOGI(TAG_HW_WIFI, "Feedback IP_EVENT não especificada = %u", event_id);
-            break;
+            // ESP_LOGI(TAG_HW_WIFI, "Feedback IP_EVENT não especificada = %d", event_id);
             break;
         }
     }

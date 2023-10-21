@@ -12,13 +12,13 @@
 // Intern libs
 
 #include "WiFi.h"
-
+#include "WebServer.h"
 /*
  * =================================
  *          Variables Local
  * =================================
  */
-
+#define TAG_MAIN            "[main]"
 /*
  * =================================
  *              START
@@ -28,20 +28,20 @@ void setup(void)
 {
   // Start Wifi on AP mode
   WiFi *m_wifi = WiFi::GetObjs();
-  m_wifi->WiFi::SetSsidAndPassword("Redezera", "12345678");
-  m_wifi->Begin(kAP);
+  m_wifi->Begin(WiFi::kAP);
+  m_wifi->WiFi::SetSsidAndPassword("Rede zera", "12345678");
+  m_wifi->Start();
 
   // Start webserver
-  WebServer * m_web = WebServer::GetObjs();
+  WebServer *m_web = WebServer::GetObjs();
   m_web->Begin();
 
-  while(1)
+  while (1)
   {
     m_web->IsActive();
     vTaskDelay(500);
   }
 }
-
 
 /*
  * =================================
